@@ -36,7 +36,8 @@ DWORD WINAPI Thread(HMODULE hModule)
 
 	// hack loop
 	while (true)
-	{
+	{		
+		std::cout << Config::bVisuals << std::endl;
 		if (GetAsyncKeyState(VK_INSERT) & 1)
 		{
 			Config::bMenuOpen = !Config::bMenuOpen;

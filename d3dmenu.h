@@ -24,7 +24,7 @@ namespace D3DMenu
 	{
 	public:
 		const char* name;
-		bool enabled;
+		bool* enabled;
 		bool defaultToggled;
 		bool isTitle;
 		int title;
@@ -163,7 +163,7 @@ namespace D3DMenu
 				// toggle selected menu item
 				if (GetAsyncKeyState(VK_RIGHT) & 1 || GetAsyncKeyState(VK_LEFT) & 1)
 				{
-					menuItems[I::CurrentMenuItem].enabled = !menuItems[I::CurrentMenuItem].enabled; // a little toggle
+					*menuItems[I::CurrentMenuItem].enabled = !(*menuItems[I::CurrentMenuItem].enabled); // a little toggle
 				}
 				std::cout << I::CurrentMenuItem << "\n";
 				std::cout << I::TotalItemCount << "\n";
@@ -172,7 +172,7 @@ namespace D3DMenu
 
 		// default toggled not being used
 		// implimented in future
-		void Add(const char* name, bool config, bool defaultToggled, bool isTitle, int title)
+		void Add(const char* name, bool* config, bool defaultToggled, bool isTitle, int title)
 		{			
 			D3DMenu::menuItems[I::TotalItemCount].name = name;
 			D3DMenu::menuItems[I::TotalItemCount].enabled = config;
@@ -203,7 +203,7 @@ namespace D3DMenu
 					currentItemPos.x = I::ItemXPos;
 					textColour = i == I::CurrentMenuItem ? C::ActiveItem : C::Item;
 					// bool
-					Drawing::DrawTextA(menuItems[i].enabled ? "ON" : "OFF", M::Position.x * 10, currentItemPos.y, textColour, DT_CENTER);
+					Drawing::DrawTextA(*(menuItems[i].enabled) ? "ON" : "OFF", M::Position.x * 10, currentItemPos.y, textColour, DT_CENTER);
 				}
 				// name
 				Drawing::DrawTextA(menuItems[i].name, currentItemPos.x, currentItemPos.y, textColour, DT_LEFT);
@@ -260,7 +260,7 @@ namespace D3DMenu
 		if (!initialised)
 		{
 			Items::Add("Visuals", false, false, true, 0);
-			Items::Add("chams", &Config::bVisuals2, false, false, 0);
+			Items::Add("chams", &Config::bVisuals, false, false, 0);
 			Items::Add("Misc", &Config::bVisuals, false, false, 0);
 			Items::Add("dsds", false, false, true, 0);
 			Items::Add("chams", &Config::bVisuals2, false, false, 3);
