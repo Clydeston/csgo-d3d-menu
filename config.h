@@ -16,6 +16,7 @@ namespace Config
 
 	extern bool bVisuals;
 	extern bool bVisuals2;
+	extern int bChamsType;
 }
 
 namespace Offsets

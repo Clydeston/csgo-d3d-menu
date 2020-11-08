@@ -2,6 +2,7 @@
 #include <d3d9.h>
 #include <d3dx9.h>
 #include "drawing.h"
+#include <sstream>
 
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib, "d3dx9.lib")
@@ -19,15 +20,39 @@ namespace Colours
 }
 
 namespace D3DMenu
-{
+{	
 	class Item
 	{
 	public:
 		const char* name;
-		bool* enabled;
-		bool defaultToggled;
-		bool isTitle;
-		int title;
+		bool isTitle;		
+		bool isBool;
+		bool isInt;
+		int titleIndex;
+		class Title
+		{
+		public:
+			int arrayPosition;
+		};
+
+		class Bool
+		{
+		public:
+			bool* boolPtr;
+			bool defaultToggled;
+		};
+
+		class Int
+		{
+		public:
+			int* intPtr;
+			int min;
+			int max;
+			char* displayName;
+		};
+		Title titleObj;
+		Int intObj;
+		Bool boolObj;
 	};
 
 	// menu item objects
@@ -161,49 +186,118 @@ namespace D3DMenu
 				}
 
 				// toggle selected menu item
-				if (GetAsyncKeyState(VK_RIGHT) & 1 || GetAsyncKeyState(VK_LEFT) & 1)
+				if (GetAsyncKeyState(VK_LEFT) & 1)
 				{
-					*menuItems[I::CurrentMenuItem].enabled = !(*menuItems[I::CurrentMenuItem].enabled); // a little toggle
+					if (menuItems[I::CurrentMenuItem].isBool)
+					{
+						*menuItems[I::CurrentMenuItem].boolObj.boolPtr = !(*menuItems[I::CurrentMenuItem].boolObj.boolPtr);
+					}
+					if (menuItems[I::CurrentMenuItem].isInt)
+					{						
+						// less than min
+						if (*menuItems[I::CurrentMenuItem].intObj.intPtr -1 >= menuItems[I::CurrentMenuItem].intObj.min)
+						{
+							*menuItems[I::CurrentMenuItem].intObj.intPtr = *menuItems[I::CurrentMenuItem].intObj.intPtr -=1;
+						}
+					}
 				}
-				std::cout << I::CurrentMenuItem << "\n";
-				std::cout << I::TotalItemCount << "\n";
+
+				if (GetAsyncKeyState(VK_RIGHT) & 1)
+				{
+					if (menuItems[I::CurrentMenuItem].isBool)
+					{
+						*menuItems[I::CurrentMenuItem].boolObj.boolPtr = !(*menuItems[I::CurrentMenuItem].boolObj.boolPtr);
+					}
+					if (menuItems[I::CurrentMenuItem].isInt)
+					{						
+						// greater than max
+						if (*menuItems[I::CurrentMenuItem].intObj.intPtr + 1 <= menuItems[I::CurrentMenuItem].intObj.max)
+						{
+							*menuItems[I::CurrentMenuItem].intObj.intPtr = *menuItems[I::CurrentMenuItem].intObj.intPtr += 1;
+						}
+					}					
+				}
 			}
 		}
 
-		// default toggled not being used
-		// implimented in future
-		void Add(const char* name, bool* config, bool defaultToggled, bool isTitle, int title)
-		{			
+		// TODO DEFAULT TOGGLE
+		void Bool(const char* name, bool* config, bool defaultToggled = false)
+		{
+			Item::Bool boolItem;
+			boolItem.boolPtr = config;
+			boolItem.defaultToggled = defaultToggled;
+
+			D3DMenu::menuItems[I::TotalItemCount].isBool = true;
 			D3DMenu::menuItems[I::TotalItemCount].name = name;
-			D3DMenu::menuItems[I::TotalItemCount].enabled = config;
-			D3DMenu::menuItems[I::TotalItemCount].defaultToggled = defaultToggled;
-			D3DMenu::menuItems[I::TotalItemCount].isTitle = isTitle;
-			D3DMenu::menuItems[I::TotalItemCount].title = title;
+			D3DMenu::menuItems[I::TotalItemCount].boolObj = boolItem;
+			I::TotalItemCount++;
+		}
+
+		void Int(const char* name, int* config, int min, int max)
+		{
+			Item::Int intItem;
+			intItem.intPtr = config;
+			intItem.min = min;
+			intItem.max = max;
+			
+			D3DMenu::menuItems[I::TotalItemCount].isInt = true;
+			D3DMenu::menuItems[I::TotalItemCount].name = name;
+			D3DMenu::menuItems[I::TotalItemCount].intObj = intItem;
+			I::TotalItemCount++;
+		}
+
+		void Title(const char* name)
+		{
+			Item::Title titleItem;
+			titleItem.arrayPosition = I::TotalItemCount;
+
+			D3DMenu::menuItems[I::TotalItemCount].isTitle = true;
+			D3DMenu::menuItems[I::TotalItemCount].name = name;
+			D3DMenu::menuItems[I::TotalItemCount].titleObj = titleItem;
 			I::TotalItemCount++;
 		}
 
 		void Draw()
 		{
-			static Vec2 currentItemPos;			
+			static Vec2 currentItemPos;		
+			static int lastTitleIndex;
 			D3DCOLOR textColour;
 			for (int i = 0; i < I::TotalItemCount; i++)
 			{
 				currentItemPos.y = (i == 0 ? I::StartingYPos : currentItemPos.y += I::Padding);
 				if (menuItems[i].isTitle)
-				{
+				{			
+					lastTitleIndex = i;
 					currentItemPos.x = I::TitleXPos;
 					textColour = C::Title;
-					if (i == menuItems[I::CurrentMenuItem].title)
+					if (i == menuItems[I::CurrentMenuItem].titleIndex)
 					{
 						textColour = C::ActiveTitle;
-					}
+					}					
 				}
 				else
 				{
+					menuItems[i].titleIndex = lastTitleIndex;
 					currentItemPos.x = I::ItemXPos;
 					textColour = i == I::CurrentMenuItem ? C::ActiveItem : C::Item;
-					// bool
-					Drawing::DrawTextA(*(menuItems[i].enabled) ? "ON" : "OFF", M::Position.x * 10, currentItemPos.y, textColour, DT_CENTER);
+					if (menuItems[i].isBool)
+					{
+						// bool
+						Drawing::DrawTextA(*(menuItems[i].boolObj.boolPtr) ? "ON" : "OFF", M::Position.x * 10, currentItemPos.y, textColour, DT_CENTER);
+					}
+					else
+					{
+						// int
+						if (menuItems[i].isInt)
+						{
+							std::string intToStr;
+							std::stringstream ss;
+							ss << *(menuItems[i].intObj.intPtr);							
+							intToStr = ss.str();
+											
+							Drawing::DrawTextA(intToStr.c_str(), M::Position.x * 10, currentItemPos.y, textColour, DT_CENTER);
+						}
+					}					
 				}
 				// name
 				Drawing::DrawTextA(menuItems[i].name, currentItemPos.x, currentItemPos.y, textColour, DT_LEFT);
@@ -259,19 +353,16 @@ namespace D3DMenu
 		// drawing menu items once
 		if (!initialised)
 		{
-			Items::Add("Visuals", false, false, true, 0);
-			Items::Add("chams", &Config::bVisuals, false, false, 0);
-			Items::Add("Misc", &Config::bVisuals, false, false, 0);
-			Items::Add("dsds", false, false, true, 0);
-			Items::Add("chams", &Config::bVisuals2, false, false, 3);
-			Items::Add("chams", &Config::bVisuals2, false, false, 3);
-			Items::Add("chams", &Config::bVisuals2, false, false, 3);
-			Items::Add("chams", &Config::bVisuals2, false, false, 3);
-			Items::Add("dddddsds", false, false, true, 0);
-			Items::Add("chams", &Config::bVisuals2, false, false, 8);
-			Items::Add("chams", &Config::bVisuals2, false, false, 8);
-			Items::Add("chams", &Config::bVisuals2, false, false, 8);
-			Items::Add("chams", &Config::bVisuals2, false, false, 8);
+			Items::Title("Visuals");
+			Items::Bool("Chams", &Config::bVisuals, false);
+			Items::Title("Misc");			
+			Items::Bool("chams", &Config::bVisuals2, false);
+			Items::Bool("chams", &Config::bVisuals2, false);
+			Items::Bool("chams", &Config::bVisuals2, false);
+			Items::Bool("chams", &Config::bVisuals2, false);
+			Items::Title("Misc");
+			Items::Int("chams", &Config::bChamsType, 0, 3);
+			Items::Int("chams", &Config::bChamsType, 0, 3);
 			initialised = true;
 		}
 	}
