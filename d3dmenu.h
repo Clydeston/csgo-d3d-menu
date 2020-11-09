@@ -199,6 +199,10 @@ namespace D3DMenu
 						{
 							*menuItems[I::CurrentMenuItem].intObj.intPtr = *menuItems[I::CurrentMenuItem].intObj.intPtr -=1;
 						}
+						else
+						{
+							*menuItems[I::CurrentMenuItem].intObj.intPtr = menuItems[I::CurrentMenuItem].intObj.max;
+						}
 					}
 				}
 
@@ -214,6 +218,10 @@ namespace D3DMenu
 						if (*menuItems[I::CurrentMenuItem].intObj.intPtr + 1 <= menuItems[I::CurrentMenuItem].intObj.max)
 						{
 							*menuItems[I::CurrentMenuItem].intObj.intPtr = *menuItems[I::CurrentMenuItem].intObj.intPtr += 1;
+						}
+						else
+						{
+							*menuItems[I::CurrentMenuItem].intObj.intPtr = menuItems[I::CurrentMenuItem].intObj.min;
 						}
 					}					
 				}
