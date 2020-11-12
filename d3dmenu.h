@@ -48,6 +48,7 @@ namespace D3DMenu
 			int* intPtr;
 			int min;
 			int max;
+			int changeValue;
 			char* displayName;
 		};
 		Title titleObj;
@@ -195,9 +196,9 @@ namespace D3DMenu
 					if (menuItems[I::CurrentMenuItem].isInt)
 					{						
 						// less than min
-						if (*menuItems[I::CurrentMenuItem].intObj.intPtr -1 >= menuItems[I::CurrentMenuItem].intObj.min)
+						if (*menuItems[I::CurrentMenuItem].intObj.intPtr - menuItems[I::CurrentMenuItem].intObj.changeValue >= menuItems[I::CurrentMenuItem].intObj.min)
 						{
-							*menuItems[I::CurrentMenuItem].intObj.intPtr = *menuItems[I::CurrentMenuItem].intObj.intPtr -=1;
+							*menuItems[I::CurrentMenuItem].intObj.intPtr -= menuItems[I::CurrentMenuItem].intObj.changeValue;
 						}
 						else
 						{
@@ -215,9 +216,9 @@ namespace D3DMenu
 					if (menuItems[I::CurrentMenuItem].isInt)
 					{						
 						// greater than max
-						if (*menuItems[I::CurrentMenuItem].intObj.intPtr + 1 <= menuItems[I::CurrentMenuItem].intObj.max)
+						if (*menuItems[I::CurrentMenuItem].intObj.intPtr + menuItems[I::CurrentMenuItem].intObj.changeValue <= menuItems[I::CurrentMenuItem].intObj.max)
 						{
-							*menuItems[I::CurrentMenuItem].intObj.intPtr = *menuItems[I::CurrentMenuItem].intObj.intPtr += 1;
+							*menuItems[I::CurrentMenuItem].intObj.intPtr += menuItems[I::CurrentMenuItem].intObj.changeValue;
 						}
 						else
 						{
@@ -241,12 +242,13 @@ namespace D3DMenu
 			I::TotalItemCount++;
 		}
 
-		void Int(const char* name, int* config, int min, int max)
+		void Int(const char* name, int* config, int min, int max, int changeValue = 1)
 		{
 			Item::Int intItem;
 			intItem.intPtr = config;
 			intItem.min = min;
 			intItem.max = max;
+			intItem.changeValue = changeValue;
 			
 			D3DMenu::menuItems[I::TotalItemCount].isInt = true;
 			D3DMenu::menuItems[I::TotalItemCount].name = name;
